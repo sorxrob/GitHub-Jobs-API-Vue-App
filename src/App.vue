@@ -1,29 +1,54 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
-  </div>
+  <b-container class="my-4">
+    <h1 class="mb-4">GitHub Jobs</h1>
+    <search-form @params-change="handleParamsChange" />
+    <jobs-pagination :page="page" :hasNextPage="hasNextPage" @page-update="pageUpdate" />
+    <h1 v-if="loading">Loading...</h1>
+    <job v-for="job in jobs" :key="job.id" :job="job" />
+    <jobs-pagination :page="page" :hasNextPage="hasNextPage" @page-update="pageUpdate" />
+  </b-container>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import HelloWorld from './components/HelloWorld.vue';
+import { defineComponent, ref } from '@vue/composition-api';
 
-export default Vue.extend({
-  name: 'App',
+import { Params, useFetchJobs } from './useFetchJobs';
+import Job from './components/Job.vue';
+import JobsPagination from './components/JobsPagination.vue';
+import SearchForm from './components/SearchForm.vue';
+
+export default defineComponent({
   components: {
-    HelloWorld,
+    Job,
+    JobsPagination,
+    SearchForm,
+  },
+  setup() {
+    const page = ref(1);
+    const params = ref<Params>({});
+    const { jobs, loading, error, hasNextPage } = useFetchJobs(params, page);
+
+    const pageUpdate = (val: number) => {
+      page.value = val;
+    };
+
+    const handleParamsChange = (val: Params) => {
+      params.value = {
+        ...params.value,
+        ...val,
+      };
+    };
+
+    return {
+      page,
+      params,
+      jobs,
+      loading,
+      error,
+      hasNextPage,
+      pageUpdate,
+      handleParamsChange,
+    };
   },
 });
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
